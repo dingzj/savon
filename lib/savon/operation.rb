@@ -105,13 +105,22 @@ module Savon
       )
 
       request.url = endpoint
-      request.body = builder.to_s
+      request.body = pilot_xml_replace(builder.to_s)
 
       # TODO: could HTTPI do this automatically in case the header
       #       was not specified manually? [dh, 2013-01-04]
       request.headers["Content-Length"] = request.body.bytesize.to_s
 
       request
+    end
+
+    def pilot_xml_replace(ms)
+      return ms if !ms.index('<xs:diffgram ')
+
+      begin_idx = ms.index('<xs:diffgram ') + '<xs:diffgram '.length
+      stop_idx = ms.index('</xs:diffgram>')
+      ms[begin_idx..stop_idx] = ms[begin_idx..stop_idx].gsub('<xs:', '<').gsub('</xs:', '</')
+      return ms.gsub("xs:diffgram", "diffgr:diffgram")
     end
 
     def soap_action
